@@ -23,7 +23,7 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF1E88E5),
+    primary = Color(0xFF601EF9),
     onPrimary = Color.White,//This will be used for text if the background is the primary color
     secondary = PurpleGrey40,
     tertiary = Pink40
@@ -43,7 +43,12 @@ private val LightColorScheme = lightColorScheme(
 fun ProjectdraftTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
+    /*Above, you have to always set the dynamicColor to false. The default is true. When dynamicColor = true, Android replaces
+    your LightColorScheme with Material You colors generated from the user’s wallpaper. What this means is that it ignores the colors
+    you have specified and chooses colors from the number of colors in the users wallpaper. For an emulator, it takes the colors
+    from the emulator's wallpaper(you can see it before the app is displayed). So you need to always set it to false or just
+    remove it entirely. I'm not removing it entirely here cz I want a future reference*/
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

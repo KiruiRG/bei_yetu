@@ -1,7 +1,7 @@
 package com.example.projectdraft
 
 import android.content.res.Configuration
-import android.graphics.Bitmap
+import android.graphics.drawable.Icon
 import androidx.fragment.app.Fragment
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,27 +9,39 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.projectdraft.ui.theme.ProjectdraftTheme
-import com.google.firebase.firestore.core.ComponentProvider
 
 class HomePageFragment : Fragment() {
     /*You're creating a Fragment called HomePageFragment.
@@ -77,6 +89,7 @@ fun HomePageScreen(){
             .fillMaxSize()
     ){
         TopBar()
+        SearchBar()
     }
 }
 
@@ -86,7 +99,7 @@ fun TopBar(){
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.primary)
-            .padding(15.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp),/*This is 16 dp for left and right each and 12dp for top and bottom each*/
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ){
@@ -107,6 +120,71 @@ fun Logo(){
         This makes the screen readers skip the image when reading to a visually impaired person*/
         modifier = Modifier
             .size(50.dp)
+    )
+}
+
+@Composable
+fun SearchBar(){
+    var searchWord by remember { mutableStateOf("") }
+    /*Ok so above, I know it's a bit confusing why the value is not false like we it was in our other app so apparently,
+    * what we put in the brackets is usually what we want our initial value of the variable to be. In this case, we want it to be
+    * a black string so that's why we are putting ""
+    * Reminder:
+    * mutableStateOf makes it a state. A state is a component that is observed by Compose so that it can recompose in case it changes
+    * remember ensures that the new value of the variable is not forgotten when Compose recomposes. I was confused by this before. I didn't see
+    * the point of creating a state cz why can't we just store the variable then use it. But here is the thing, you want change to occur every time
+    * you are typing sth. So eg typing f will have an effect and typing fr will have an effect so that means we need a state. what do states need?
+    * Variables that are remembered.
+    * by allows me to access the value like this: value = searchQuery instead of this: value = searchQuery.value*/
+
+    TextField(
+        value = searchWord,
+        onValueChange = {
+            /*onValueChange just means,"If the value changes, do the following:"*/
+            searchWord = it /*Ok so here is what "it" is for, when the value of the searchWord changes, the variable is a state, right? So the change is detected.
+            What we know now is that there has been change but then we need to actually assign that new value and that is what it does. It says that, "You see that
+            new value entered, that is what searchWord is now equal to*/
+                        },
+
+        placeholder = {
+            Text(
+                text = "Search",
+                color = Color.Gray,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Medium
+            )
+        },
+
+        leadingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.ic_search),
+                contentDescription = "Search Icon",
+                tint = Color.Gray,
+                modifier = Modifier
+                    .size(25.dp)
+            )
+        },
+
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 30.dp, vertical = 20.dp)//This is padding outside. In compose there are no margins
+            .height(50.dp)
+            .border(1.5.dp, Color.Gray, MaterialTheme.shapes.medium),
+
+        textStyle = TextStyle(
+            lineHeight = 50.sp //I'm setting the line height of the text to be similar to the textfield height so that it is centered vertically
+        ),
+
+        singleLine = false, /*This means that the user can only enter a single line of words. If they press enter, it won't work*/
+
+        shape = MaterialTheme.shapes.small,//Rounded corners
+        colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = Color.White,/*Background color if search bar is not selected. I'm removing the default grey*/
+            focusedContainerColor = Color.White,
+            unfocusedIndicatorColor = Color.Transparent,/*This is how you remove the default grey line on the bottom border*/
+            focusedIndicatorColor = Color.Transparent
+            )
+
     )
 }
 
