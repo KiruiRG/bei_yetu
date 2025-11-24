@@ -108,7 +108,7 @@ fun HomePageScreen(onSearch: (String) -> Unit){
             .fillMaxSize()
     ){
         TopBar()
-        SearchBar()
+        HomepageSearchBar()
         topCategories()
         Suggested()
     }
@@ -159,7 +159,7 @@ fun GreetingSection(){
 }
 
 @Composable
-fun SearchBar(onSearch: (String) -> Unit){
+fun HomepageSearchBar(){
     var searchWord by remember { mutableStateOf("") }
     /*Ok so above, I know it's a bit confusing why the value is not false like we it was in our other app so apparently,
     * what we put in the brackets is usually what we want our initial value of the variable to be. In this case, we want it to be
@@ -172,6 +172,8 @@ fun SearchBar(onSearch: (String) -> Unit){
     * Variables that are remembered.
     * by allows me to access the value like this: value = searchQuery instead of this: value = searchQuery.value*/
 
+
+
     TextField(
         value = searchWord,
         onValueChange = {
@@ -179,10 +181,8 @@ fun SearchBar(onSearch: (String) -> Unit){
             searchWord = it /*Ok so here is what "it" is for, when the value of the searchWord changes, the variable is a state, right? So the change is detected.
             What we know now is that there has been change but then we need to actually assign that new value and that is what it does. It says that, "You see that
             new value entered, that is what searchWord is now equal to*/
-            if (it.endsWith("\n") || it.length > 2) {
-                onSearch(it.trim())
-            }
-                        },
+        },
+
 
         placeholder = {
             Box(
