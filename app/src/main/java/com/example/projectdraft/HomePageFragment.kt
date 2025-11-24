@@ -55,7 +55,7 @@ class HomePageFragment : Fragment() {
     : Fragment() means it inherits from Android's Fragment class.*/
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
+    ): View? {
         /*For the above 3 lines:
         * This is the lifecycle method that tells Android how to create the view for this Fragment.
         * It’s called when the Fragment’s UI is being created.
