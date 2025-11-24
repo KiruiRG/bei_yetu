@@ -11,14 +11,20 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.NotificationCompat
 import com.example.projectdraft.ui.theme.ProjectdraftTheme
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -51,7 +58,7 @@ class HomePageFragment : Fragment() {
     : Fragment() means it inherits from Android's Fragment class.*/
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
+    ): View? {
         /*For the above 3 lines:
         * This is the lifecycle method that tells Android how to create the view for this Fragment.
         * It’s called when the Fragment’s UI is being created.
@@ -100,6 +107,8 @@ fun HomePageScreen(onSearch: (String) -> Unit){
             .fillMaxSize()
     ){
         TopBar()
+        SearchBar()
+        topCategories()
         SearchBar(onSearch)
     }
 }
@@ -134,6 +143,20 @@ fun Logo(){
     )
 }
 
+var userName : String = "User";
+@Composable
+fun GreetingSection(){
+    Text(
+        text = "Hello, " + userName,
+        style = MaterialTheme.typography.titleMedium,
+        /*The line above controls the size and weight. By weight here, I mean the thickness or boldness
+        * There is a difference between font weight(this one here) and the weight of the layouts(weight = 1f)
+        * One is for thickness, the other one is applied on rows, columns etc to determine how much space they should occupy
+        * The h5 above stands for heading 5*/
+        color = MaterialTheme.colorScheme.onPrimary
+    )
+}
+
 @Composable
 fun SearchBar(onSearch: (String) -> Unit){
     var searchWord by remember { mutableStateOf("") }
@@ -161,12 +184,17 @@ fun SearchBar(onSearch: (String) -> Unit){
                         },
 
         placeholder = {
-            Text(
-                text = "Search",
-                color = Color.Gray,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Medium
-            )
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.CenterStart
+            ){
+                Text(
+                    text = "Search",
+                    color = Color.Gray,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
         },
 
         leadingIcon = {
@@ -181,13 +209,10 @@ fun SearchBar(onSearch: (String) -> Unit){
 
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 30.dp, vertical = 20.dp)//This is padding outside. In compose there are no margins
-            .height(50.dp)
+            .padding(start = 30.dp, end = 30.dp, top = 20.dp, bottom = 15.dp)//This is padding outside. In compose there are no margins
+            .height(53.dp)
             .border(1.5.dp, Color.Gray, MaterialTheme.shapes.medium),
 
-        textStyle = TextStyle(
-            lineHeight = 50.sp //I'm setting the line height of the text to be similar to the textfield height so that it is centered vertically
-        ),
 
         singleLine = false, /*This means that the user can only enter a single line of words. If they press enter, it won't work*/
 
@@ -202,18 +227,36 @@ fun SearchBar(onSearch: (String) -> Unit){
     )
 }
 
-var userName : String = "User";
 @Composable
-fun GreetingSection(){
-    Text(
-        text = "Hello, " + userName,
-        style = MaterialTheme.typography.titleSmall,
-        /*The line above controls the size and weight. By weight here, I mean the thickness or boldness
-        * There is a difference between font weight(this one here) and the weight of the layouts(weight = 1f)
-        * One is for thickness, the other one is applied on rows, columns etc to determine how much space they should occupy
-        * The h5 above stands for heading 5*/
-        color = MaterialTheme.colorScheme.onPrimary
-    )
+fun topCategories(){
+    Column (
+        modifier = Modifier
+            .padding(horizontal = 30.dp)
+    ){
+        Text(
+            text = "Top Categories",
+            style = MaterialTheme.typography.titleSmall
+        )
+
+        Row{
+
+        }
+    }
+}
+
+@Composable
+fun IconAndName(icon: Int, name : String){
+    Column{
+        Image(
+            painter = painterResource(icon),
+            contentDescription = "Category Icon",
+            modifier = Modifier.size(25.dp)
+        )
+
+        Text(
+            text = "$name"
+        )
+    }
 }
 
 @Preview(

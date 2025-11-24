@@ -79,13 +79,13 @@ fun ProjectdraftTheme(
         ),
 
         titleMedium = TextStyle(
-            fontSize = 35.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold
         ),
 
         titleSmall = TextStyle(
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold
         )
     )
 
