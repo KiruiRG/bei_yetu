@@ -1,7 +1,5 @@
 package com.example.projectdraft
 
-import android.content.res.Configuration
-import android.graphics.drawable.Icon
 import androidx.fragment.app.Fragment
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -20,17 +18,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,19 +33,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.NotificationCompat
 import com.example.projectdraft.ui.theme.ProjectdraftTheme
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
 
@@ -59,7 +48,7 @@ class HomePageFragment : Fragment() {
     : Fragment() means it inherits from Android's Fragment class.*/
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         /*For the above 3 lines:
         * This is the lifecycle method that tells Android how to create the view for this Fragment.
         * It’s called when the Fragment’s UI is being created.
@@ -70,25 +59,28 @@ class HomePageFragment : Fragment() {
         * return inflater.inflate(R.layout.fragment_home_page, container, false)
         * But this is Compose, we don't have XML files so we directly declare UI in Kotlin Code that's why the next line is returning a Compose View*/
         return ComposeView(requireContext()).apply {
-            val viewModel: ResultsViewModel =
-                ViewModelProvider(this@HomePageFragment)[ResultsViewModel::class.java]
-
             /*ComposeView is a special view that lets you use Jetpack Compose inside a Fragment.
             requireContext() gives the current context (needed to create the view).
             A context is like a backstage pass that lets you access system services, resources, and app-level info.
             The line ComposeView(requireContext()) tells Android: “Hey, I want to build this view, and here’s the environment info you need.”
             apply { ... } lets you configure the ComposeView right after creating it.*/
+
             setContent {
                 ProjectdraftTheme {
                     Surface {
                         /*Purpose: Surface is like a background container that applies the theme’s colors, elevation, and shapes.
                         It ensures your UI respects the theme’s background color and avoids drawing directly on the raw can*/
-                        HomePageScreen(
-                            onSearch = { query ->
-                                viewModel.search(query)
-                            }
-                        )
-                        //For this fix to work, your ResultsViewModel must have a function like fun performSearch(query: String) { ... } defined.
+
+                        /*We create a shared ViewModel using requireActivity().
+                        This means:
+                        - ViewModel lives as long as the Activity lives.
+                        - It is shared with other fragments if needed.
+                        - Database loads only once.
+                        */
+                        val viewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
+
+                        /*Finally we pass the ViewModel to the composable screen*/
+                        HomePageScreen(viewModel)
                         /*This is where you set the Compose UI.
                         setContent { ... } tells the ComposeView what to display.
                         HomePageScreen() is your Composable function — the actual UI code written in Compose.*/
@@ -101,16 +93,29 @@ class HomePageFragment : Fragment() {
 }
 
 @Composable
-fun HomePageScreen(onSearch: (String) -> Unit){
+fun HomePageScreen(viewModel: HomeViewModel) {
+
+    /*collectAsState() converts StateFlow into a Compose State.
+      This means anytime _products changes in ViewModel,
+      the UI recomposes automatically.*/
+    val productList = viewModel.products.collectAsState().value
+
     /*Copilot says that in Compose, every UI element is a function so eg the logo, greeting etc, all of them will be functions I'm adding here*/
     Column(
         modifier = Modifier
             .fillMaxSize()
     ){
         TopBar()
-        HomepageSearchBar()
+
+        /*Passing the viewModel's search function*/
+        HomepageSearchBar(onSearch = { query ->
+            viewModel.searchProducts(query)
+        })
+
         topCategories()
-        Suggested()
+
+        /*Use dynamic products from database instead of hardcoded Suggested() items*/
+        Suggested(products = productList)
     }
 }
 
@@ -159,7 +164,7 @@ fun GreetingSection(){
 }
 
 @Composable
-fun HomepageSearchBar(){
+fun HomepageSearchBar(onSearch: (String) -> Unit){
     var searchWord by remember { mutableStateOf("") }
     /*Ok so above, I know it's a bit confusing why the value is not false like we it was in our other app so apparently,
     * what we put in the brackets is usually what we want our initial value of the variable to be. In this case, we want it to be
@@ -181,6 +186,8 @@ fun HomepageSearchBar(){
             searchWord = it /*Ok so here is what "it" is for, when the value of the searchWord changes, the variable is a state, right? So the change is detected.
             What we know now is that there has been change but then we need to actually assign that new value and that is what it does. It says that, "You see that
             new value entered, that is what searchWord is now equal to*/
+
+            onSearch(it) // calling the viewModel search function
         },
 
 
@@ -284,7 +291,7 @@ fun IconAndName(icon: Int, name : String){
 }
 
 @Composable
-fun Suggested(){
+fun Suggested(products: List<ProductWithName>){
     Column (
         modifier = Modifier
             .padding(horizontal = 30.dp, vertical = 15.dp)
@@ -294,26 +301,22 @@ fun Suggested(){
             style = MaterialTheme.typography.titleSmall
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ){
-            SuggestionAndName(R.drawable.test_bread, "Festive Bread")
-            SuggestionAndName(R.drawable.test_tv, "Samsung 55\" TV")
-            SuggestionAndName(R.drawable.test_washm, "Hisense 10.5kgs")
-        }
+        /*Loop through products in rows of 3*/
+        val chunkedProducts = products.chunked(3)
+        chunkedProducts.forEach { rowProducts ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                rowProducts.forEach { product ->
+                    SuggestionAndName(
+                        icon = product.imageRes,
+                        name = product.name
+                    )
+                }
+            }
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ){
-            SuggestionAndName(R.drawable.test_fridge, "Samsung Fridge")
-            SuggestionAndName(R.drawable.test_milk, "Brookside Milk")
-            SuggestionAndName(R.drawable.test_blender, "Ramtons Blender")
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
@@ -339,6 +342,19 @@ fun SuggestionAndName(icon: Int, name : String){
     }
 }
 
+/*A fake view model to help me see the preview
+class FakeHomeViewModel : ViewModel() {
+    val products = MutableStateFlow(
+        listOf(
+            ProductWithName(1, "Festive Bread", 5.99, 2, "Pastries", R.drawable.test_bread),
+            ProductWithName(2, "Samsung 55\" TV", 599.99, 1, "Electronics", R.drawable.test_tv),
+            ProductWithName(3, "Hisense Washing Machine", 399.99, 3, "Detergents", R.drawable.test_washm)
+        )
+    )
+}
+
+
+
 @Preview(
     name = "Light Mode",
     uiMode = Configuration.UI_MODE_NIGHT_NO
@@ -349,12 +365,15 @@ fun SuggestionAndName(icon: Int, name : String){
 )
 @Composable
 fun previewHomeScreen(){
+    @Suppress("ViewModelConstructorInComposable")
+    val fakeViewModel = FakeHomeViewModel()
     ProjectdraftTheme {
         Surface {
             /*Purpose: Surface is like a background container that applies the theme’s colors, elevation, and shapes.
               It ensures your UI respects the theme’s background color and avoids drawing directly on the raw can*/
-            HomePageScreen(onSearch = {})
+            HomePageScreen(viewModel = fakeViewModel)
         }
 
     }
 }
+*/

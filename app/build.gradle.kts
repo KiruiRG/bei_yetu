@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.dagger.hilt.android") version "2.51.1" // ✅ add version
     id("org.jetbrains.kotlin.kapt")
-
+    id("kotlin-kapt")
 }
 
 android {
@@ -83,6 +83,11 @@ android {
         debugImplementation("androidx.compose.ui:ui-tooling:1.6.0")
         implementation("com.google.android.material:material:1.11.0")
         implementation("androidx.navigation:navigation-compose:2.7.0")
+
+
+        implementation("androidx.room:room-runtime:2.6.1")
+        kapt("androidx.room:room-compiler:2.6.1")
+        implementation("androidx.room:room-ktx:2.6.1")
 
 
     }
