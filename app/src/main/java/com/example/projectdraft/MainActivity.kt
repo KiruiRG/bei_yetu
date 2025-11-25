@@ -3,17 +3,34 @@ package com.example.projectdraft
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Icon
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.findNavController
+
 import com.example.projectdraft.ProjectdraftTheme
- // ✅ use your actual theme name
+import com.google.android.material.bottomnavigation.BottomNavigationView
+
+// ✅ use your actual theme name
 
 
-class MainActivity : ComponentActivity() {
+/*class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
+
+        setContent() {
             ProjectdraftTheme { // ✅ fix theme here
                 /*
                 val viewModel: ResultsViewModel = viewModel()
@@ -29,8 +46,64 @@ class MainActivity : ComponentActivity() {
                   //  ResultsScreen(products)
                // }*/
 
-                val viewModel = ViewModelProvider(this)[HomeViewModel::class.java]
-                HomePageScreen(viewModel)
+                /*val viewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+                HomePageScreen(viewModel)*/
+
+            }
+        }
+    }
+}*/
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            ProjectdraftTheme {
+                val navController = rememberNavController()
+                val items = listOf(
+                    Screen.Home, Screen.Orders, Screen.Categories, Screen.Account
+                )
+
+                Scaffold(
+                    bottomBar = {
+                        BottomNavigation {
+                            val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+                            items.forEach { screen ->
+                                BottomNavigationItem(
+                                    icon = { Icon(screen.icon, contentDescription = screen.label) },
+                                    label = { Text(screen.label) },
+                                    selected = currentRoute == screen.route,
+                                    onClick = {
+                                        navController.navigate(screen.route) {
+                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                ) { innerPadding ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = Screen.Home.route,
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+                        composable(Screen.Home.route) {
+                            // Provide the ViewModel here
+                            val viewModel: HomeViewModel = viewModel()
+                            HomePageScreen(viewModel)
+                        }
+                        composable(Screen.Categories.route) {
+                            val viewModel: HomeViewModel = viewModel()
+                            CategoriesScreen(viewModel)
+                        }
+                        //composable(Screen.Orders.route) { OrdersScreen() }
+                        composable(Screen.Account.route) { AccountScreen() }
+                        //composable(Screen.Statistics.route) { StatisticsScreen() }
+                    }
+                }
             }
         }
     }
