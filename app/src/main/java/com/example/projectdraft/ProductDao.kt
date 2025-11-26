@@ -10,20 +10,20 @@ import androidx.room.*
 interface ProductDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertProduct(product: ProductEntity)
+    suspend fun insertProduct(product: ProductEntity): Long
     /*This inserts a ProductEntity. It replaces if the primary key already exists*/
 
     @Query("SELECT * FROM ProductEntity")
     suspend fun getAllProducts(): List<ProductEntity>
     //This returns every row from ProductEntity (the table)
 
-    @Query("""
+    /*@Query("""
         SELECT p.*, c.name AS catName 
         FROM ProductEntity p 
         INNER JOIN CategoriesEntity c 
         ON p.categoryId = c.id
     """)
-    fun getAllProductsWithCategoryName(): List<ProductWithName>
+    suspend fun getAllProductsWithCategoryName(): List<ProductWithName>*/
     /*Breakdown of the JOIN:
     * SELECT p.* selects all the columns of the ProductEntity
     * c.name selects the name column in CategoriesEntity
@@ -35,16 +35,38 @@ interface ProductDao {
     * So the output will be all the columns from the table ProductEntity with an additional column catName that will be stored in
     * data class ProductWithName. I've put it in ProductEntity*/
 
-    @Query("""
+    /*@Query("""
         SELECT p.*, c.name AS catName
         FROM ProductEntity p
         INNER JOIN CategoriesEntity c
         ON p.categoryId = c.id
         WHERE c.name = :categoryName
     """)
-    suspend fun getProductsByCategoryName(categoryName: String): List<ProductWithName>
+    suspend fun getProductsByCategoryName(categoryName: String): List<ProductWithName>*/
 
     @Query("SELECT COUNT(*) FROM ProductEntity")
     suspend fun countProducts(): Int
     //This counts the number of items in the products entity
+
+    @Query("""
+        SELECT p.id, p.name, p.price, p.imageRes,  p.description,
+               c.name AS categoryName,
+               s.name AS subcategoryName
+        FROM ProductEntity p
+        INNER JOIN SubcategoryEntity s ON p.subcategoryId = s.id
+        INNER JOIN CategoriesEntity c ON s.categoryId = c.id
+    """)
+    suspend fun getAllProductsWithCategoryAndSubcategory(): List<ProductWithCategoryAndSubcategory>
+
+    // Fetch a single product by ID, with its category + subcategory names
+    @Query("""
+        SELECT p.id, p.name, p.price, p.imageRes, p.description,
+               c.name AS categoryName, s.name AS subcategoryName
+        FROM ProductEntity p
+        INNER JOIN SubcategoryEntity s ON p.subcategoryId = s.id
+        INNER JOIN CategoriesEntity c ON s.categoryId = c.id
+        WHERE p.id = :productId
+    """)
+    suspend fun getProductById(productId: Int): ProductWithCategoryAndSubcategory
+
 }

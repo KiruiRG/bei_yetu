@@ -2,6 +2,8 @@ package com.example.projectdraft
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 /*This file ensures that only one instance of the database is created for the whole app.
 * If it didn't exist, if eg HomePage needs a Database, it would create
@@ -29,7 +31,14 @@ object DatabaseProvider {
                 the app runs, not just one screen*/
                 AppDatabase::class.java,/*Converts AppDatabase to a java class cz RoomBuilder usually expects a java class*/
                 "beiyetu_db"
-            ).build()
+            )
+                .addCallback(object : RoomDatabase.Callback() {
+                    override fun onOpen(db: SupportSQLiteDatabase) {
+                        super.onOpen(db)
+                        db.execSQL("PRAGMA foreign_keys=ON;")
+                    }
+                })
+                .build()
         }
         return db!!
     }
