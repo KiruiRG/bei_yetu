@@ -73,9 +73,39 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = "home?searchQuery={searchQuery}",
+                        startDestination = "login",
                         modifier = Modifier.padding(innerPadding)
                     ) {
+                        composable("login") {
+                            LoginScreen(
+                                onLogin = {
+                                    navController.navigate("home?searchQuery=null") {
+                                        popUpTo("login") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                },
+                                onGoToSignUp = {
+                                    navController.navigate("signup")
+                                }
+                            )
+                        }
+
+                        composable("signup") {
+                            SignUpScreen(
+                                onSignUp = {
+                                    navController.navigate("home?searchQuery=null") {
+                                        popUpTo("signup") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                },
+                                onGoToLogin = {
+                                    navController.navigate("login") {
+                                        popUpTo("signup") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
                         composable(
                             route = "home?searchQuery={searchQuery}",
                             arguments = listOf(
