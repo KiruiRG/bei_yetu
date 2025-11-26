@@ -17,13 +17,13 @@ interface ProductDao {
     suspend fun getAllProducts(): List<ProductEntity>
     //This returns every row from ProductEntity (the table)
 
-    @Query("""
+    /*@Query("""
         SELECT p.*, c.name AS catName 
         FROM ProductEntity p 
         INNER JOIN CategoriesEntity c 
         ON p.categoryId = c.id
     """)
-    suspend fun getAllProductsWithCategoryName(): List<ProductWithName>
+    suspend fun getAllProductsWithCategoryName(): List<ProductWithName>*/
     /*Breakdown of the JOIN:
     * SELECT p.* selects all the columns of the ProductEntity
     * c.name selects the name column in CategoriesEntity
@@ -35,16 +35,27 @@ interface ProductDao {
     * So the output will be all the columns from the table ProductEntity with an additional column catName that will be stored in
     * data class ProductWithName. I've put it in ProductEntity*/
 
-    @Query("""
+    /*@Query("""
         SELECT p.*, c.name AS catName
         FROM ProductEntity p
         INNER JOIN CategoriesEntity c
         ON p.categoryId = c.id
         WHERE c.name = :categoryName
     """)
-    suspend fun getProductsByCategoryName(categoryName: String): List<ProductWithName>
+    suspend fun getProductsByCategoryName(categoryName: String): List<ProductWithName>*/
 
     @Query("SELECT COUNT(*) FROM ProductEntity")
     suspend fun countProducts(): Int
     //This counts the number of items in the products entity
+
+    @Query("""
+        SELECT p.id, p.name, p.price, p.imageRes,
+               c.name AS categoryName,
+               s.name AS subcategoryName
+        FROM ProductEntity p
+        INNER JOIN SubcategoryEntity s ON p.subcategoryId = s.id
+        INNER JOIN CategoriesEntity c ON s.categoryId = c.id
+    """)
+    suspend fun getAllProductsWithCategoryAndSubcategory(): List<ProductWithCategoryAndSubcategory>
+
 }
