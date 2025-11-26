@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -70,18 +71,24 @@ data class CategoryItem(val name: String, val imageRes: Int, val label: String)
 data class Category(val title: String, val items: List<CategoryItem>)
 
 @Composable
-fun CategoriesScreen(viewModel: HomeViewModel) {
+fun CategoriesScreen(
+    viewModel: HomeViewModel,
+    onCategoryClick: (String) -> Unit
+) {
     // Collect the shared flow once
     val products by viewModel.products.collectAsState(initial = emptyList())
 
     Column {
         TopBar()
-        GroupedCategoriesLazy(products)
+        GroupedCategoriesLazy(products, onCategoryClick)
     }
 }
 
 @Composable
-fun GroupedCategoriesLazy(products: List<ProductWithCategoryAndSubcategory>){
+fun GroupedCategoriesLazy(
+    products: List<ProductWithCategoryAndSubcategory>,
+    onCategoryClick: (String) -> Unit
+){
 
     val byCategory = products.groupBy { it.categoryName }
 
@@ -97,7 +104,9 @@ fun GroupedCategoriesLazy(products: List<ProductWithCategoryAndSubcategory>){
             item {
                 Text(
                     text = catName,
-                    modifier = Modifier.padding(bottom = 2.dp),
+                    modifier = Modifier
+                        .padding(bottom = 2.dp)
+                        .clickable { onCategoryClick(catName) },
                     fontWeight = FontWeight.ExtraBold
                 )
             }
@@ -108,7 +117,11 @@ fun GroupedCategoriesLazy(products: List<ProductWithCategoryAndSubcategory>){
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(productsInCat) { product ->
-                        CategoryItem(icon = product.imageRes, name = product.name)
+                        CategoryItem(
+                            icon = product.imageRes,
+                            name = product.name,
+                            onClick = { onCategoryClick(catName) }
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -120,7 +133,7 @@ fun GroupedCategoriesLazy(products: List<ProductWithCategoryAndSubcategory>){
 }
 
 @Composable
-fun CategoryItem(icon: Int, name : String){
+fun CategoryItem(icon: Int, name : String, onClick: () -> Unit){
     Column(
         modifier = Modifier
             .size(width = 90.dp, height = 140.dp)
@@ -154,15 +167,21 @@ fun CategoryItem(icon: Int, name : String){
 fun previewCategoriesScreen() {
     ProjectdraftTheme {
         Surface (modifier = Modifier.fillMaxSize()){
+
+            val sampleProducts = listOf(
+                ProductWithCategoryAndSubcategory(id = 1, name = "Fridge", price = 799.99, categoryName = "Electronics", subcategoryName = "Fridges", imageRes = R.drawable.test_fridge , description = "This is a very powerful fridge"),
+                ProductWithCategoryAndSubcategory(id =2, name = "Washing Machine", price =999.99, categoryName = "Electronics", subcategoryName = "Washing Machines", imageRes = R.drawable.test_washm, description = null) ,
+                ProductWithCategoryAndSubcategory(id =3, name = "Samsung TV", price =999.99, categoryName = "Electronics", subcategoryName = "Televisions", imageRes = R.drawable.test_tv, description = null),
+                ProductWithCategoryAndSubcategory(id =4, name = "Ramtons Blender", price =999.99, categoryName = "Electronics", subcategoryName = "Blenders", imageRes = R.drawable.test_blender, description = null),
+                ProductWithCategoryAndSubcategory(id =5, name = "Bread",price = 5.99, categoryName = "Pastries", subcategoryName = "Bread", imageRes = R.drawable.test_bread, description = null),
+                ProductWithCategoryAndSubcategory(id =6, name = "Brookside Milk",price = 6.99, categoryName = "Drinks", subcategoryName = "Milk" , imageRes = R.drawable.test_milk, description = null),
+            )
             GroupedCategoriesLazy(
-                listOf(
-                    ProductWithCategoryAndSubcategory(id = 1, name = "Fridge", price = 799.99, categoryName = "Electronics", subcategoryName = "Fridges", imageRes = R.drawable.test_fridge ),
-                    ProductWithCategoryAndSubcategory(id =2, name = "Washing Machine", price =999.99, categoryName = "Electronics", subcategoryName = "Washing Machines", imageRes = R.drawable.test_washm) ,
-                    ProductWithCategoryAndSubcategory(id =3, name = "Samsung TV", price =999.99, categoryName = "Electronics", subcategoryName = "Televisions", imageRes = R.drawable.test_tv, ),
-                    ProductWithCategoryAndSubcategory(id =4, name = "Ramtons Blender", price =999.99, categoryName = "Electronics", subcategoryName = "Blenders", imageRes = R.drawable.test_blender),
-                    ProductWithCategoryAndSubcategory(id =5, name = "Bread",price = 5.99, categoryName = "Pastries", subcategoryName = "Bread", imageRes = R.drawable.test_bread),
-                    ProductWithCategoryAndSubcategory(id =6, name = "Brookside Milk",price = 6.99, categoryName = "Drinks", subcategoryName = "Milk" , imageRes = R.drawable.test_milk),
-                )
+                products = sampleProducts,
+                onCategoryClick = { clickedCategory ->
+                    // For preview, just print/log or ignore
+                    println("Clicked category: $clickedCategory")
+                }
             )
         }
     }

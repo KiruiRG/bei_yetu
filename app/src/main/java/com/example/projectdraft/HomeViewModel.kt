@@ -6,8 +6,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -47,6 +49,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val productDao = db.productDao()
     private val categoriesDao = db.categoriesDao()
     private val subCategoryDao = db.subCategoryDao()
+    private val storeDao = db.storeDao()
+    private val listingDao = db.listingDao()
+
 
     //Then we access the dao method we want using the database
 
@@ -66,6 +71,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 /*The above if statement means that if the table is empty, insert the default products
                 * so they'll be the first products. If it isn't, then just load the items in the
                 * products table. It ensures that the default items are not inserted over and over again*/
+
             }
         }
     }
@@ -114,31 +120,56 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         val wheatId = subCategoryDao.insertSubcategory(SubcategoryEntity(name = "Rice", categoryId = cerealsId)).toInt()
 
         //Actual Insertions
-        productDao.insertProduct(ProductEntity(name = "Samsung 55\" TV", subcategoryId = tvId, price = 599.99, imageRes = R.drawable.test_tv))
-        productDao.insertProduct(ProductEntity(name = "Samsung Fridge", subcategoryId = fridgeId, price = 799.99, imageRes = R.drawable.test_fridge))
-        productDao.insertProduct(ProductEntity(name = "Ramtons Blender", subcategoryId = blenderId, price = 49.99, imageRes = R.drawable.test_blender))
-        productDao.insertProduct(ProductEntity(name = "Hisense 10.5 kgs", subcategoryId = washmachineId, price = 949.99, imageRes = R.drawable.test_washm))
+        val samsungTvId = productDao.insertProduct(ProductEntity(name = "Samsung 55\" TV", subcategoryId = tvId, price = 599.99, imageRes = R.drawable.test_tv, description = "Experience stunning  4K clarity with the Samsung UHD TV. Powered by the Crystal Processor 4K Engine, every scene looks vibrant and lifelike.")).toInt()
+        val samsungFridgeId = productDao.insertProduct(ProductEntity(name = "Samsung Fridge", subcategoryId = fridgeId, price = 799.99, imageRes = R.drawable.test_fridge, description = "Samsung fridges are described as modern appliances featuring innovative technology, energy efficiency, and various storage options. Common features include the Digital Inverter Compressor for quiet and efficient operation, Twin Cooling Plus to maintain optimal humidity and prevent odor mixing, and No Frost technology to eliminate manual defrosting. They are also known for their stylish designs, durable tempered glass shelves, and convenient features like adjustable shelving, LED lighting, and specific drawers for fruits and vegetables. ")).toInt()
+        val ramtonsBlenderId = productDao.insertProduct(ProductEntity(name = "Ramtons Blender", subcategoryId = blenderId, price = 49.99, imageRes = R.drawable.test_blender, description = "Ramtons blenders are designed to be functional and reliable, featuring powerful motors and durable stainless-steel blades for blending, chopping, and pureeing various ingredients for everything from smoothies to sauces. They typically include features like multi-speed settings, safety locks, and large-capacity jugs (often 1.5 liters), with many models also coming with additional attachments like a mill or chopper. ")).toInt()
+        val HisensewsId = productDao.insertProduct(ProductEntity(name = "Hisense 10.5 kgs", subcategoryId = washmachineId, price = 949.99, imageRes = R.drawable.test_washm, description = "Hisense washing machines are described as energy-efficient and reliable appliances that come in various types, including front-load, top-load, and wash-and-dry models, with capacities ranging from small (6kg) to large (13.5kg).")).toInt()
 
-        productDao.insertProduct(ProductEntity(name = "Festive Bread", subcategoryId = breadId, price = 5.99, imageRes = R.drawable.test_bread))
-        productDao.insertProduct(ProductEntity(name = "Chocolate Cake", subcategoryId = cakeId, price = 12.99, imageRes = R.drawable.test_cake))
+        productDao.insertProduct(ProductEntity(name = "Festive Bread", subcategoryId = breadId, price = 5.99, imageRes = R.drawable.test_bread, description = "The brand, DPL Festive, offers a white bread that is soft and light, suitable for sandwiches and toast, as well as brown and sugar-free options. In a more traditional sense, festive bread is a naturally fermented, often dark, round loaf, flavored with caraway seeds and malt, and is sometimes baked into decorative shapes for holidays like Christmas. ")).toInt()
+        productDao.insertProduct(ProductEntity(name = "Chocolate Cake", subcategoryId = cakeId, price = 12.99, imageRes = R.drawable.test_cake, description = "This is a cake flavored with melted chocolate, cocoa powder, or both, known for its rich, deep chocolate taste and generally moist, tender, and soft texture. The exact description can vary depending on the specific ingredients and type of preparation. ")).toInt()
 
-        productDao.insertProduct(ProductEntity(name = "Ultra Concentrated Laundry Soap", subcategoryId = laundryId, price = 30.99, imageRes = R.drawable.test_laundry))
-        productDao.insertProduct(ProductEntity(name = "Cadia dish soap", subcategoryId = dishsoapId, price = 25.99, imageRes = R.drawable.test_dish))
-        productDao.insertProduct(ProductEntity(name = "Concentrated Bleach", subcategoryId = bleachingId, price = 40.99, imageRes = R.drawable.test_bleach))
+        productDao.insertProduct(ProductEntity(name = "Ultra Concentrated Laundry Soap", subcategoryId = laundryId, price = 30.99, imageRes = R.drawable.test_laundry, description = "This is a powerful, highly effective detergent with a higher percentage of active cleaning ingredients and less water compared to traditional formulas. This means a smaller amount is needed for each wash, making it cost-effective, logistically efficient, and often more eco-friendly due to reduced plastic packaging.")).toInt()
+        productDao.insertProduct(ProductEntity(name = "Cadia dish soap", subcategoryId = dishsoapId, price = 25.99, imageRes = R.drawable.test_dish, description = "Cadia dish soaps are plant-based, biodegradable, and hypoallergenic cleaning products that are formulated to be gentle yet effective against grease and grime."))
+        productDao.insertProduct(ProductEntity(name = "Concentrated Bleach", subcategoryId = bleachingId, price = 40.99, imageRes = R.drawable.test_bleach, description = "Concentrated bleach is a powerful cleaning solution, typically a pale yellow liquid with a characteristic odor, used for whitening, disinfecting, and deodorizing. It is a highly effective, multi-purpose product for both laundry and hard surfaces, capable of killing germs, removing tough stains, and eliminating mold and mildew.")).toInt()
 
-        productDao.insertProduct(ProductEntity(name = "Brookside Milk", subcategoryId = sodaId, price = 15.99, imageRes = R.drawable.test_milk))
-        productDao.insertProduct(ProductEntity(name = "Canned Soda", subcategoryId = sodaId, price = 15.99, imageRes = R.drawable.test_soda))
-        productDao.insertProduct(ProductEntity(name = "Water", subcategoryId = waterId, price = 10.99, imageRes = R.drawable.test_water))
+        productDao.insertProduct(ProductEntity(name = "Brookside Milk", subcategoryId = milkId, price = 15.99, imageRes = R.drawable.test_milk, description = "Brookside milk includes a variety of products like long-life UHT whole milk, which is creamy, rich, and has an extended shelf life without refrigeration until opened. The company also offer dairy-free alternatives like soy, almond, and oat milks, which are naturally lactose-free. ")).toInt()
+        productDao.insertProduct(ProductEntity(name = "Canned Soda", subcategoryId = sodaId, price = 15.99, imageRes = R.drawable.test_soda, description = "This is a sealed, single-serving metal container holding a carbonated beverage that typically includes water, sweeteners (sugar or artificial sweeteners), and flavorings.")).toInt()
+        productDao.insertProduct(ProductEntity(name = "Water", subcategoryId = waterId, price = 10.99, imageRes = R.drawable.test_water, description = "This is water packaged in sealed containers for human consumption, sourced from various places like springs, wells, or municipal supplies, and is subject to safety standards.")).toInt()
 
-        productDao.insertProduct(ProductEntity(name = "Eucerin Sunscreen", subcategoryId = skincareId, price = 60.99, imageRes = R.drawable.test_skin))
-        productDao.insertProduct(ProductEntity(name = "Fenti Lipstick", subcategoryId = makeupId, price = 85.99, imageRes = R.drawable.test_makeup))
+        productDao.insertProduct(ProductEntity(name = "Eucerin Sunscreen", subcategoryId = skincareId, price = 60.99, imageRes = R.drawable.test_skin, description = "Eucerin sunscreen is a line of sun protection products that offers high levels of UVA/UVB protection and is formulated for various skin types.Specific product descriptions include the Oil Control Gel-Cream for oily/acne-prone skin with an anti-shine effect and the Hydro Protect Ultra-Light Fluid, which provides deep hydration and a weightless feel for all skin types.")).toInt()
+        productDao.insertProduct(ProductEntity(name = "Fenti Lipstick", subcategoryId = makeupId, price = 85.99, imageRes = R.drawable.test_makeup, description = "Fenty lipsticks are known for their wide range of inclusive shades, high-impact color, and comfortable formulas that provide either a velvet-matte or a sheer, shiny finish. For example, the Icon Velvet Liquid Lipstick is a non-drying, whipped formula that delivers rich, matte color with a plush, comfortable feel.")).toInt()
 
-        productDao.insertProduct(ProductEntity(name = "Apples", subcategoryId = fruitsId, price = 15.99, imageRes = R.drawable.test_fruit))
-        productDao.insertProduct(ProductEntity(name = "Clustered Veggies", subcategoryId = vegetablesId, price = 13.99, imageRes = R.drawable.test_veggies))
+        productDao.insertProduct(ProductEntity(name = "Apples", subcategoryId = fruitsId, price = 15.99, imageRes = R.drawable.test_fruit, description = "Packaged apples are whole or sliced apples that are washed, sorted by size and quality, and protected in containers such as bags, trays, or boxes to prevent bruising and extend shelf life.")).toInt()
+        productDao.insertProduct(ProductEntity(name = "Clustered Veggies", subcategoryId = vegetablesId, price = 13.99, imageRes = R.drawable.test_veggies, description = "Packaged vegetables are fresh or frozen produce that has been cleaned, cut, and sealed in a container for sale and consumption. The packaging extends shelf life, protects against damage, and provides consumer convenience by offering pre-portioned, pre-washed, or pre-cut items.")).toInt()
 
-        productDao.insertProduct(ProductEntity(name = "Dawaat Basmati Rice", subcategoryId = riceId, price = 100.00, imageRes = R.drawable.test_rice))
-        productDao.insertProduct(ProductEntity(name = "Pembe 2kg Maize Flour", subcategoryId = maizeId, price = 80.00, imageRes = R.drawable.test_maize))
-        productDao.insertProduct(ProductEntity(name = "EXE 2kgs All-purpose Flour", subcategoryId = wheatId, price = 150.00, imageRes = R.drawable.test_wheat))
+        productDao.insertProduct(ProductEntity(name = "Dawaat Basmati Rice", subcategoryId = riceId, price = 100.00, imageRes = R.drawable.test_rice, description = "Daawat Basmati rice is a premium long-grain rice known for its authentic aroma, fluffy texture, and superior quality, with grains that elongate up to 19 mm or more when cooked. It is aged to perfection to enhance its flavor and is often grown in the Himalayan foothills.")).toInt()
+        productDao.insertProduct(ProductEntity(name = "Pembe 2kg Maize Flour", subcategoryId = maizeId, price = 80.00, imageRes = R.drawable.test_maize, description = "Pembe maize flour is a leading Kenyan brand of sifted maize flour that is rich in carbohydrates, proteins, vitamins, and minerals, and is fortified to ensure it's a nutritious staple for families. It is a versatile ingredient used for making traditional dishes like ugali, as well as other baked goods, and is milled from fine-quality maize. ")).toInt()
+        productDao.insertProduct(ProductEntity(name = "EXE 2kgs All-purpose Flour", subcategoryId = wheatId, price = 150.00, imageRes = R.drawable.test_wheat, description = "EXE wheat flour is a versatile brand, with a flagship \"All-Purpose\" flour suitable for a wide range of uses, including baking, pancakes, chapatis, and thickening sauces. Other variations like \"Self Raising\" flour make baking easier, while \"Atta Mark 1\" is ideal for soft, whole-wheat chapatis.")).toInt()
+
+
+        //Store Insertions
+        val naivasId = storeDao.insertStore(StoreEntity(name = "Naivas", websiteUrl = "https://naivas.online/")).toInt()
+        val quickMartId = storeDao.insertStore(StoreEntity(name = "Quick Mart", websiteUrl = "https://www.quickmart.co.ke/?srsltid=AfmBOooK8PrYL4s-w2u87tlsXuqqC-2BM3VsfgEgtdDa8z7FW7rSpUO4")).toInt()
+        val carrefourId = storeDao.insertStore(StoreEntity(name = "Carrefour", websiteUrl = "https://www.carrefour.ke/mafken/en?utm_source=google&utm_medium=cpc&utm_campaign=ke_en_s_fnf_kw_web_brand&gad_source=1&gad_campaignid=13528771373&gbraid=0AAAAADP90D-tE7Ib-m7wOhSS5KMnp06WJ&gclid=Cj0KCQiAxJXJBhD_ARIsAH_JGjiPdJoJmzSIPg9jqgcaSPRF2tShPDX_caeSIZVqpwnEAeDCx83wdDIaAkPhEALw_wcB")).toInt()
+
+
+        //I'm only gonna demonstrate the first 4 products bcz of time
+        listingDao.insertListing(ProductListingEntity(productId = samsungTvId, storeId = naivasId, price = 57999.00))
+        listingDao.insertListing(ProductListingEntity(productId = samsungTvId, storeId = quickMartId, price = 58500.00))
+        listingDao.insertListing(ProductListingEntity(productId = samsungTvId, storeId = carrefourId, price = 60999.00))
+
+        listingDao.insertListing(ProductListingEntity(productId = samsungFridgeId, storeId = naivasId, price = 98999.00))
+        listingDao.insertListing(ProductListingEntity(productId = samsungFridgeId, storeId = quickMartId, price = 97500.00))
+        listingDao.insertListing(ProductListingEntity(productId = samsungFridgeId, storeId = carrefourId, price = 100999.00))
+
+        listingDao.insertListing(ProductListingEntity(productId = ramtonsBlenderId, storeId = naivasId, price = 27999.00))
+        listingDao.insertListing(ProductListingEntity(productId = ramtonsBlenderId, storeId = quickMartId, price = 28500.00))
+        listingDao.insertListing(ProductListingEntity(productId = ramtonsBlenderId, storeId = carrefourId, price = 26999.00))
+
+        listingDao.insertListing(ProductListingEntity(productId = HisensewsId, storeId = naivasId, price = 85999.00))
+        listingDao.insertListing(ProductListingEntity(productId = HisensewsId, storeId = quickMartId, price = 88500.00))
+        listingDao.insertListing(ProductListingEntity(productId = HisensewsId, storeId = carrefourId, price = 86999.00))
+
     }
 
 
@@ -172,4 +203,22 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    suspend fun getBestPrice(productId: Int): StorePriceListing? {
+        return listingDao.getSortedListingsForProduct(productId).firstOrNull()
+    }
+
+    private val _productDetails =
+        MutableStateFlow<Pair<ProductWithCategoryAndSubcategory, List<StorePriceListing>>?>(null)
+    val productDetails: StateFlow<Pair<ProductWithCategoryAndSubcategory, List<StorePriceListing>>?> =
+        _productDetails
+
+    fun loadProductDetails(productId: Int) {
+        viewModelScope.launch {
+            val product = productDao.getProductById(productId) // suspend call
+            val listings = listingDao.getSortedListingsForProduct(productId) // suspend call
+            _productDetails.value = product to listings
+        }
+    }
+
 }

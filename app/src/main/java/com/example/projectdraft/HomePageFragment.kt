@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.projectdraft.ui.theme.ProjectdraftTheme
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 
 class HomePageFragment : Fragment() {
@@ -78,9 +82,10 @@ class HomePageFragment : Fragment() {
                         - Database loads only once.
                         */
                         val viewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
+                        val navController = rememberNavController()
 
                         /*Finally we pass the ViewModel to the composable screen*/
-                        HomePageScreen(viewModel)
+                        HomePageScreen(viewModel, navController)
                         /*This is where you set the Compose UI.
                         setContent { ... } tells the ComposeView what to display.
                         HomePageScreen() is your Composable function — the actual UI code written in Compose.*/
@@ -93,7 +98,15 @@ class HomePageFragment : Fragment() {
 }
 
 @Composable
-fun HomePageScreen(viewModel: HomeViewModel) {
+fun HomePageScreen(
+    viewModel: HomeViewModel,
+    navController: NavController, // add navigation so you can go to ProductDetailScreen
+    searchQuery: String? = null // optional argument
+) {
+    // If a searchQuery was passed, trigger search once
+    LaunchedEffect(searchQuery) {
+        searchQuery?.let { viewModel.searchProducts(it) }
+    }
 
     /*collectAsState() converts StateFlow into a Compose State.
       This means anytime _products changes in ViewModel,
@@ -108,14 +121,19 @@ fun HomePageScreen(viewModel: HomeViewModel) {
         TopBar()
 
         /*Passing the viewModel's search function*/
-        HomepageSearchBar(onSearch = { query ->
-            viewModel.searchProducts(query)
+        HomepageSearchBar(
+            onSearch = { query -> viewModel.searchProducts(query)
         })
 
         topCategories()
 
         /*Use dynamic products from database instead of hardcoded Suggested() items*/
-        Suggested(products = productList)
+        Suggested(
+            products = productList,
+            onProductClick = { productId ->
+                navController.navigate("productDetail/$productId")
+            }
+        )
     }
 }
 
@@ -291,7 +309,10 @@ fun IconAndName(icon: Int, name : String){
 }
 
 @Composable
-fun Suggested(products: List<ProductWithCategoryAndSubcategory>){
+fun Suggested(
+    products: List<ProductWithCategoryAndSubcategory>,
+    onProductClick: (Int) -> Unit // pass productId back when clicked
+){
     Column (
         modifier = Modifier
             .padding(horizontal = 30.dp, vertical = 15.dp)
@@ -314,7 +335,8 @@ fun Suggested(products: List<ProductWithCategoryAndSubcategory>){
                 rowProducts.forEach { product ->
                     SuggestionAndName(
                         icon = product.imageRes,
-                        name = product.name
+                        name = product.name,
+                        onClick = { onProductClick(product.id) } // send productId
                     )
                 }
             }
@@ -324,10 +346,15 @@ fun Suggested(products: List<ProductWithCategoryAndSubcategory>){
 }
 
 @Composable
-fun SuggestionAndName(icon: Int, name : String){
+fun SuggestionAndName(
+    icon: Int,
+    name : String,
+    onClick: () -> Unit
+){
     Column(
         modifier = Modifier
-            .size(width = 90.dp, height = 170.dp),
+            .size(width = 90.dp, height = 170.dp)
+            .clickable { onClick() }, // 👈 make it clickable
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ){
