@@ -6,6 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,11 +28,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 
@@ -74,7 +81,7 @@ fun CategoriesScreen(viewModel: HomeViewModel) {
 }
 
 @Composable
-fun GroupedCategoriesLazy(products: List<ProductWithName>){
+fun GroupedCategoriesLazy(products: List<ProductWithCategoryAndSubcategory>){
 
     val byCategory = products.groupBy { it.categoryName }
 
@@ -90,26 +97,21 @@ fun GroupedCategoriesLazy(products: List<ProductWithName>){
             item {
                 Text(
                     text = catName,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 2.dp)
+                    modifier = Modifier.padding(bottom = 2.dp),
+                    fontWeight = FontWeight.ExtraBold
                 )
             }
 
-            // Show up to 3 items per row
-            val rows = productsInCat.chunked(3)
-            rows.forEach { row ->
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        row.forEach { product ->
-                            CategoryItem(icon = product.imageRes, name = product.name)
-                        }
-                        // optional: add empty placeholders if you want a fixed 3‑slot width
+            item {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(productsInCat) { product ->
+                        CategoryItem(icon = product.imageRes, name = product.name)
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
                 }
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
         }
@@ -121,7 +123,9 @@ fun GroupedCategoriesLazy(products: List<ProductWithName>){
 fun CategoryItem(icon: Int, name : String){
     Column(
         modifier = Modifier
-            .size(width = 90.dp, height = 140.dp),
+            .size(width = 90.dp, height = 140.dp)
+            .border(1.5.dp, Color.LightGray, MaterialTheme.shapes.medium),
+            //.background(Color.Gray, MaterialTheme.shapes.medium)
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ){
@@ -152,12 +156,12 @@ fun previewCategoriesScreen() {
         Surface (modifier = Modifier.fillMaxSize()){
             GroupedCategoriesLazy(
                 listOf(
-                    ProductWithName(1, "Fridge", 799.99,1, "Electronics",R.drawable.test_fridge ),
-                    ProductWithName(2, "Washing Machine", 999.99,1, "Electronics",R.drawable.test_washm) ,
-                    ProductWithName(3, "Samsung TV", 999.99,1, "Electronics",R.drawable.test_tv, ),
-                    ProductWithName(4, "Ramtons Blender", 999.99,1, "Electronics",R.drawable.test_blender),
-                    ProductWithName(5, "Bread",5.99, 2,"Pastries", R.drawable.test_bread),
-                    ProductWithName(6, "Brookside Milk",6.99, 3,"Drinks", R.drawable.test_milk),
+                    ProductWithCategoryAndSubcategory(id = 1, name = "Fridge", price = 799.99, categoryName = "Electronics", subcategoryName = "Fridges", imageRes = R.drawable.test_fridge ),
+                    ProductWithCategoryAndSubcategory(id =2, name = "Washing Machine", price =999.99, categoryName = "Electronics", subcategoryName = "Washing Machines", imageRes = R.drawable.test_washm) ,
+                    ProductWithCategoryAndSubcategory(id =3, name = "Samsung TV", price =999.99, categoryName = "Electronics", subcategoryName = "Televisions", imageRes = R.drawable.test_tv, ),
+                    ProductWithCategoryAndSubcategory(id =4, name = "Ramtons Blender", price =999.99, categoryName = "Electronics", subcategoryName = "Blenders", imageRes = R.drawable.test_blender),
+                    ProductWithCategoryAndSubcategory(id =5, name = "Bread",price = 5.99, categoryName = "Pastries", subcategoryName = "Bread", imageRes = R.drawable.test_bread),
+                    ProductWithCategoryAndSubcategory(id =6, name = "Brookside Milk",price = 6.99, categoryName = "Drinks", subcategoryName = "Milk" , imageRes = R.drawable.test_milk),
                 )
             )
         }

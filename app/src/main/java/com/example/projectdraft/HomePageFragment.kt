@@ -243,7 +243,7 @@ fun topCategories(){
     ){
         Text(
             text = "Top Categories",
-            style = MaterialTheme.typography.titleSmall,
+            fontSize = 20.sp,
             modifier = Modifier
                 .padding(bottom = 10.dp)
         )
@@ -291,18 +291,21 @@ fun IconAndName(icon: Int, name : String){
 }
 
 @Composable
-fun Suggested(products: List<ProductWithName>){
+fun Suggested(products: List<ProductWithCategoryAndSubcategory>){
     Column (
         modifier = Modifier
             .padding(horizontal = 30.dp, vertical = 15.dp)
     ){
         Text(
             text = "Suggested for you",
-            style = MaterialTheme.typography.titleSmall
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 20.sp
         )
 
-        /*Loop through products in rows of 3*/
-        val chunkedProducts = products.chunked(3)
+        // Limit to first 6 products
+        val limitedProducts = products.take(6)
+        val chunkedProducts = limitedProducts.chunked(3)
+
         chunkedProducts.forEach { rowProducts ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -315,7 +318,6 @@ fun Suggested(products: List<ProductWithName>){
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
