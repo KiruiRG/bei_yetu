@@ -63,8 +63,8 @@ fun ProjectdraftTheme(
 
     val customTypography = Typography(
         titleLarge = TextStyle(
-            fontSize = 50.sp,
-            fontWeight = FontWeight.Bold
+            fontSize = 90.sp,
+            fontWeight = FontWeight.ExtraBold
             /*For font weight, you can choose the predefined which include:
             * FontWeight.Thin -> 100
             * FontWeight.Light -> 300

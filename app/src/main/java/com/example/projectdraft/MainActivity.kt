@@ -30,6 +30,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ProjectdraftTheme {
                 val navController = rememberNavController()
+                val viewModel: HomeViewModel = viewModel()
                 val items = listOf(
                     Screen.Home, Screen.Orders, Screen.Categories, Screen.Account
                 )
@@ -64,14 +65,27 @@ class MainActivity : ComponentActivity() {
                         startDestination = Screen.Home.route,
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        composable(Screen.Home.route) {
-                            // Provide the ViewModel here
-                            val viewModel: HomeViewModel = viewModel()
-                            HomePageScreen(viewModel)
+                        composable("home?searchQuery={searchQuery}") { backStackEntry ->
+                            val searchQuery = backStackEntry.arguments?.getString("searchQuery")
+                            HomePageScreen(
+                                viewModel = viewModel,
+                                navController = navController,
+                                searchQuery = searchQuery
+                            )
                         }
+                        composable("productDetail/{productId}") { backStackEntry ->
+                            val productId = backStackEntry.arguments?.getString("productId")?.toInt() ?: 0
+                            ProductDetailScreen(productId = productId, viewModel = viewModel)
+                        }
+
+                        // Categories → navigate back to Home with searchQuery
                         composable(Screen.Categories.route) {
-                            val viewModel: HomeViewModel = viewModel()
-                            CategoriesScreen(viewModel)
+                            CategoriesScreen(
+                                viewModel = viewModel,
+                                onCategoryClick = { categoryName ->
+                                    navController.navigate("home?searchQuery=$categoryName")
+                                }
+                            )
                         }
                         //composable(Screen.Orders.route) { OrdersScreen() }
                         //composable(Screen.Account.route) { AccountScreen() }

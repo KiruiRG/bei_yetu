@@ -10,7 +10,7 @@ import androidx.room.*
 interface ProductDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertProduct(product: ProductEntity)
+    suspend fun insertProduct(product: ProductEntity): Long
     /*This inserts a ProductEntity. It replaces if the primary key already exists*/
 
     @Query("SELECT * FROM ProductEntity")
@@ -49,7 +49,7 @@ interface ProductDao {
     //This counts the number of items in the products entity
 
     @Query("""
-        SELECT p.id, p.name, p.price, p.imageRes,
+        SELECT p.id, p.name, p.price, p.imageRes,  p.description,
                c.name AS categoryName,
                s.name AS subcategoryName
         FROM ProductEntity p
@@ -57,5 +57,16 @@ interface ProductDao {
         INNER JOIN CategoriesEntity c ON s.categoryId = c.id
     """)
     suspend fun getAllProductsWithCategoryAndSubcategory(): List<ProductWithCategoryAndSubcategory>
+
+    // Fetch a single product by ID, with its category + subcategory names
+    @Query("""
+        SELECT p.id, p.name, p.price, p.imageRes, p.description,
+               c.name AS categoryName, s.name AS subcategoryName
+        FROM ProductEntity p
+        INNER JOIN SubcategoryEntity s ON p.subcategoryId = s.id
+        INNER JOIN CategoriesEntity c ON s.categoryId = c.id
+        WHERE p.id = :productId
+    """)
+    suspend fun getProductById(productId: Int): ProductWithCategoryAndSubcategory
 
 }
