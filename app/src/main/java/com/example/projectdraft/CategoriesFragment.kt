@@ -64,6 +64,17 @@ class CategoriesFragment : Fragment() {
             }
         }
     }
+    fun navigateToSearch(query: String) {
+        val fragment = SearchResultsFragment().apply {
+            arguments = Bundle().apply {
+                putString("query", query)
+            }
+        }
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack(null)
+            .commit()
+    }
 }
 
 // Data classes for categories
